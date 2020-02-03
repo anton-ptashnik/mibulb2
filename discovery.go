@@ -54,7 +54,6 @@ func Search(stopIndicator <-chan bool) <-chan BulbSummary {
 		var responseBuf = make([]byte, 2048)
 		defer close(cres)
 		for {
-			println("iiiiiiiiiii")
 			select {
 			case <-stopIndicator:
 				break
