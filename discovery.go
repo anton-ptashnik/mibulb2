@@ -1,7 +1,6 @@
 package mibulb2
 
 import (
-	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -36,9 +35,9 @@ func parseResponce(r []byte) BulbSummary {
 	return result
 }
 
-// Search does bulb discovery and returns BulbSummary for the found bulb
+// Discover does bulb discovery and returns BulbSummary for the found bulb
 // it executes until any value is sent to @stopIndicator
-func Search(stopIndicator <-chan bool) <-chan BulbSummary {
+func Discover(stopIndicator <-chan bool) <-chan BulbSummary {
 	cres := make(chan BulbSummary)
 
 	go func() {
@@ -54,8 +53,7 @@ func Search(stopIndicator <-chan bool) <-chan BulbSummary {
 			conn.WriteTo(discoverMsg, rAddr)
 
 			conn.SetReadDeadline(time.Now().Add(time.Second * 5))
-			n, w, r := conn.ReadFrom(responseBuf)
-			fmt.Println(n, w, r)
+			n, _, _ := conn.ReadFrom(responseBuf)
 			if n == 0 {
 				select {
 				case <-stopIndicator:
