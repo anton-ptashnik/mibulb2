@@ -15,10 +15,6 @@ type BulbSummary struct {
 	Model string
 }
 
-func (b BulbSummary) String() string {
-	return fmt.Sprintln(b.Id, b.Ip)
-}
-
 func parseResponce(r []byte) BulbSummary {
 	str := string(r[:])
 
@@ -53,21 +49,29 @@ func Search(stopIndicator <-chan bool) <-chan BulbSummary {
 		defer conn.Close()
 		var responseBuf = make([]byte, 2048)
 		defer close(cres)
+	L:
 		for {
-			select {
-			case <-stopIndicator:
-				break
-			default:
-			}
 			conn.WriteTo(discoverMsg, rAddr)
 
-			conn.SetReadDeadline(time.Now().Add(time.Second * time.Duration(3)))
-			n, _, _ := conn.ReadFrom(responseBuf)
+			conn.SetReadDeadline(time.Now().Add(time.Second * 5))
+			n, w, r := conn.ReadFrom(responseBuf)
+			fmt.Println(n, w, r)
 			if n == 0 {
-				continue
+				select {
+				case <-stopIndicator:
+					break L
+				default:
+					continue
+				}
 			}
+
 			res := parseResponce(responseBuf)
-			cres <- res
+
+			select {
+			case <-stopIndicator:
+				break L
+			case cres <- res:
+			}
 		}
 	}()
 
